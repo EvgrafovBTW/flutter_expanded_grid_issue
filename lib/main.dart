@@ -1,3 +1,4 @@
+import 'package:dynamic_height_grid_view/dynamic_height_grid_view.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Flutter Expandable Grid Issue'),
     );
   }
 }
@@ -29,12 +30,27 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  bool seeAll = false;
+  double fullGridHeight = 0;
+  double shortGridHeight = 0;
+  int shorGridItems = 2;
+  double gridColumnLength = 0;
+  List<Widget> productCards = [];
+  @override
+  void initState() {
+    for (int i = 0; i < 7; i++) {
+      productCards.add(Container(
+        height: 200,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: Colors.blue,
+        ),
+      ));
+    }
+    gridColumnLength = (productCards.length / 2).roundToDouble();
+    fullGridHeight = gridColumnLength * 200 + gridColumnLength * 25;
+    shortGridHeight = shorGridItems * 200 + shorGridItems * 25;
+    super.initState();
   }
 
   @override
@@ -43,24 +59,54 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: Center(
+        body: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const Text(
-                'You have pushed the button this many times:',
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                height: seeAll ? fullGridHeight : shortGridHeight,
+                child: DynamicHeightGridView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    builder: ((context, index) {
+                      return productCards[index];
+                    }),
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 25,
+                    itemCount: productCards.length,
+                    crossAxisCount: 2),
               ),
-              Text(
-                '$_counter',
-                style: Theme.of(context).textTheme.headline4,
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    seeAll = !seeAll;
+                  });
+                },
+                child: Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: GestureDetector(
+                      child: Container(
+                        height: 45,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              seeAll ? 'Show less' : 'Show more',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white),
+                            )
+                          ],
+                        ),
+                      ),
+                    )),
               ),
             ],
           ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _incrementCounter,
-          tooltip: 'Increment',
-          child: const Icon(Icons.add),
         ));
   }
 }
